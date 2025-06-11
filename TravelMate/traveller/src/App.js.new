@@ -1,0 +1,126 @@
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { Box } from '@mui/material';
+
+// Import components
+import Navbar from './Components/layout/Navbar';
+import HomePage from './Components/pages/HomePage';
+import CityExplorer from './Components/pages/CityExplorer';
+import KnowledgeGraph from './Components/pages/KnowledgeGraph';
+import AboutPage from './Components/pages/AboutPage';
+import PlaceDetails from './Components/pages/PlaceDetails';
+import UniversalPlaceSearch from './Components/pages/UniversalPlaceSearch';
+import ItineraryGenerator from './Components/pages/ItineraryGenerator';
+
+// Import styles
+import './App.css';
+
+// Create Material-UI theme
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#ff6b35',
+      light: '#ff8a65',
+      dark: '#d84315',
+      contrastText: '#ffffff',
+    },
+    secondary: {
+      main: '#4fc3f7',
+      light: '#81d4fa',
+      dark: '#0288d1',
+      contrastText: '#ffffff',
+    },
+    background: {
+      default: '#fafafa',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#2c3e50',
+      secondary: '#546e7a',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 700,
+      fontSize: '2.5rem',
+      letterSpacing: '-0.01562em',
+    },
+    h2: {
+      fontWeight: 600,
+      fontSize: '2rem',
+      letterSpacing: '-0.00833em',
+    },
+    h3: {
+      fontWeight: 600,
+      fontSize: '1.75rem',
+      letterSpacing: '0em',
+    },
+    h4: {
+      fontWeight: 500,
+      fontSize: '1.5rem',
+      letterSpacing: '0.00735em',
+    },
+    body1: {
+      fontSize: '1rem',
+      lineHeight: 1.6,
+    },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 25,
+          padding: '10px 24px',
+          fontSize: '1rem',
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+          transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+          },
+        },
+      },
+    },
+  },
+});
+
+const App = () => {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Navbar />
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/explore" element={<CityExplorer />} />
+            <Route path="/explore/:cityName" element={<CityExplorer />} />
+            <Route path="/place/:placeId" element={<PlaceDetails />} />
+            <Route path="/search" element={<UniversalPlaceSearch />} />
+            <Route path="/itinerary" element={<ItineraryGenerator />} />
+            <Route path="/knowledge-graph" element={<KnowledgeGraph />} />
+            <Route path="/about" element={<AboutPage />} />
+          </Routes>
+        </Box>
+      </Box>
+    </ThemeProvider>
+  );
+};
+
+export default App;
