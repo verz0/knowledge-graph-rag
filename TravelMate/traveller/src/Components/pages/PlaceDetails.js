@@ -30,7 +30,8 @@ import {
   Tooltip,
   ButtonGroup,
 } from '@mui/material';
-import {  LocationOn as LocationIcon,
+import {
+  LocationOn as LocationIcon,
   Star as StarIcon,
   AccessTime as TimeIcon,
   AttachMoney as MoneyIcon,
@@ -70,7 +71,7 @@ const PlaceDetails = () => {
       try {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
-          // Enhanced mock place data based on placeId
+        // Enhanced mock place data based on placeId
         const mockPlaces = {
           paris: {
             id: 'paris',
@@ -172,7 +173,6 @@ const PlaceDetails = () => {
               walking: 'Most attractions are within walking distance'
             }
           },
-          // Add more mock places as needed
           default: {
             id: placeId,
             name: `${placeId.charAt(0).toUpperCase() + placeId.slice(1)} Destination`,
@@ -202,47 +202,8 @@ const PlaceDetails = () => {
       }
     };
 
-    if (placeId) {
-      fetchPlaceDetails();
-    }
+    fetchPlaceDetails();
   }, [placeId]);
-  if (loading) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <Skeleton variant="circular" width={40} height={40} sx={{ mr: 2 }} />
-          <Skeleton variant="text" width={200} height={40} />
-        </Box>
-        <Skeleton variant="rectangular" width="100%" height={400} sx={{ borderRadius: 4, mb: 3 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Skeleton variant="text" width="80%" height={60} />
-            <Skeleton variant="text" width="60%" height={30} sx={{ mb: 2 }} />
-            <Skeleton variant="text" width="100%" height={100} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Skeleton variant="rectangular" width="100%" height={300} sx={{ borderRadius: 3 }} />
-          </Grid>
-        </Grid>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
-      </Container>
-    );
-  }
-
-  if (!place) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="info" sx={{ borderRadius: 3 }}>Place not found</Alert>
-      </Container>
-    );
-  }
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -252,429 +213,96 @@ const PlaceDetails = () => {
     setIsFavorite(!isFavorite);
   };
 
-  return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+  if (loading) {
+    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Header with Back Button */}
-        <Fade in timeout={600}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(-1)}
-              sx={{ 
-                mr: 2,
-                color: 'text.secondary',
-                '&:hover': { color: 'primary.main' }
-              }}
-            >
-              Back
-            </Button>
-            <Typography variant="h4" sx={{ flexGrow: 1, fontWeight: 700 }}>
-              {place.name}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton onClick={toggleFavorite} color={isFavorite ? 'error' : 'default'}>
-                {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-              </IconButton>
-              <IconButton color="primary">
-                <ShareIcon />
-              </IconButton>
-            </Box>
-          </Box>
-        </Fade>
-
-        {/* Hero Image Section */}
-        <Fade in timeout={800}>
-          <Paper 
-            elevation={0}
-            sx={{ 
-              borderRadius: 4, 
-              overflow: 'hidden', 
-              mb: 4,
-              position: 'relative',
-              border: '1px solid',
-              borderColor: 'divider'
-            }}
-          >
-            <Box sx={{ position: 'relative' }}>
-              <CardMedia
-                component="img"
-                height="500"
-                image={place.images[selectedImage]}
-                alt={place.name}
-                sx={{ 
-                  objectFit: 'cover',
-                  transition: 'transform 0.3s ease',
-                  '&:hover': {
-                    transform: 'scale(1.02)'
-                  }
-                }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                  p: 3,
-                  color: 'white',
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Rating value={place.rating} precision={0.1} readOnly sx={{ mr: 2 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {place.rating} ({place.reviewCount.toLocaleString()} reviews)
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {place.tags?.map((tag, index) => (
-                    <Chip
-                      key={index}
-                      label={tag}
-                      size="small"
-                      sx={{
-                        bgcolor: 'rgba(255,255,255,0.2)',
-                        color: 'white',
-                        backdropFilter: 'blur(10px)',
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Box>
-            
-            {/* Image Gallery Thumbnails */}
-            {place.images.length > 1 && (
-              <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-                <ImageList sx={{ height: 80 }} cols={6} rowHeight={80}>
-                  {place.images.map((image, index) => (
-                    <ImageListItem 
-                      key={index}
-                      sx={{
-                        cursor: 'pointer',
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        border: selectedImage === index ? '3px solid' : '1px solid',
-                        borderColor: selectedImage === index ? 'primary.main' : 'divider',
-                        '&:hover': {
-                          borderColor: 'primary.main',
-                        }
-                      }}
-                      onClick={() => setSelectedImage(index)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${place.name} ${index + 1}`}
-                        loading="lazy"
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover' 
-                        }}
-                      />
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              </Box>
-            )}
-          </Paper>
-        </Fade>
-
-        {/* Main Content */}
-        <Grid container spacing={4}>
-          {/* Left Column - Details */}
-          <Grid item xs={12} md={8}>
-            <Fade in timeout={1000}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-                {/* Tabs */}
-                <Tabs
-                  value={tabValue}
-                  onChange={handleTabChange}
-                  sx={{
-                    borderBottom: 1,
-                    borderColor: 'divider',
-                    mb: 3,
-                    '& .MuiTab-root': {
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                    }
-                  }}
-                >
-                  <Tab label="Overview" icon={<InfoIcon />} iconPosition="start" />
-                  <Tab label="Attractions" icon={<AttractionsIcon />} iconPosition="start" />
-                  <Tab label="Tips" icon={<TipsIcon />} iconPosition="start" />
-                  <Tab label="Photos" icon={<PhotoIcon />} iconPosition="start" />
-                </Tabs>
-
-                {/* Tab Content */}
-                {tabValue === 0 && (
-                  <Box>
-                    <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', lineHeight: 1.7 }}>
-                      {place.longDescription || place.description}
-                    </Typography>
-                    
-                    <Divider sx={{ my: 3 }} />
-                    
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 2 }}>
-                      🌟 Highlights
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {place.highlights.map((highlight, index) => (
-                        <Grid item xs={12} sm={6} key={index}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
-                            <StarIcon sx={{ color: 'primary.main', mr: 1, fontSize: 20 }} />
-                            <Typography variant="body2">{highlight}</Typography>
-                          </Box>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
-
-                {tabValue === 1 && (
-                  <Box>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                      🎯 Top Attractions
-                    </Typography>
-                    <Grid container spacing={3}>
-                      {place.attractions.map((attraction, index) => (
-                        <Grid item xs={12} sm={6} key={index}>
-                          <Card 
-                            elevation={0}
-                            sx={{ 
-                              border: '1px solid', 
-                              borderColor: 'divider',
-                              borderRadius: 3,
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                borderColor: 'primary.main',
-                                transform: 'translateY(-4px)',
-                                boxShadow: 3,
-                              }
-                            }}
-                          >
-                            <CardContent>
-                              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                                {attraction.name}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Rating value={attraction.rating} precision={0.1} readOnly size="small" />
-                                <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                                  {attraction.rating}
-                                </Typography>
-                              </Box>
-                              <Typography variant="body2" color="text.secondary" paragraph>
-                                {attraction.description}
-                              </Typography>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <ScheduleIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                                  <Typography variant="body2">{attraction.estimatedTime}</Typography>
-                                </Box>
-                                <Typography variant="body2" color="primary.main" sx={{ fontWeight: 600 }}>
-                                  {attraction.ticketPrice}
-                                </Typography>
-                              </Box>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
-
-                {tabValue === 2 && (
-                  <Box>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                      💡 Insider Tips
-                    </Typography>
-                    <List>
-                      {place.tips.map((tip, index) => (
-                        <ListItem key={index} sx={{ px: 0 }}>
-                          <ListItemIcon>
-                            <TipsIcon color="primary" />
-                          </ListItemIcon>
-                          <ListItemText 
-                            primary={tip}
-                            sx={{ 
-                              '& .MuiListItemText-primary': { 
-                                fontSize: '1rem',
-                                lineHeight: 1.6
-                              }
-                            }}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                )}
-
-                {tabValue === 3 && (
-                  <Box>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                      📸 Photo Gallery
-                    </Typography>
-                    <ImageList variant="masonry" cols={3} gap={8}>
-                      {place.images.map((image, index) => (
-                        <ImageListItem key={index}>
-                          <img
-                            src={image}
-                            alt={`${place.name} ${index + 1}`}
-                            loading="lazy"
-                            style={{ borderRadius: 8 }}
-                          />
-                        </ImageListItem>
-                      ))}
-                    </ImageList>
-                  </Box>
-                )}
-              </Paper>
-            </Fade>
-          </Grid>
-
-          {/* Right Column - Quick Info */}
-          <Grid item xs={12} md={4}>
-            <Fade in timeout={1200}>
-              <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                  📍 Quick Info
-                </Typography>
-                
-                <List dense>
-                  <ListItem sx={{ px: 0 }}>
-                    <ListItemIcon><LocationIcon color="primary" /></ListItemIcon>
-                    <ListItemText primary="Location" secondary={`${place.location.country}, ${place.location.continent}`} />
-                  </ListItem>
-                  
-                  <ListItem sx={{ px: 0 }}>
-                    <ListItemIcon><ClimateIcon color="primary" /></ListItemIcon>
-                    <ListItemText 
-                      primary="Best Time to Visit" 
-                      secondary={place.bestTimeToVisit.season}
-                    />
-                  </ListItem>
-                  
-                  <ListItem sx={{ px: 0 }}>
-                    <ListItemIcon><MoneyIcon color="primary" /></ListItemIcon>
-                    <ListItemText 
-                      primary="Budget Range" 
-                      secondary={`${place.costs.budget} - ${place.costs.luxury}`}
-                    />
-                  </ListItem>
-                  
-                  <ListItem sx={{ px: 0 }}>
-                    <ListItemIcon><LanguageIcon color="primary" /></ListItemIcon>
-                    <ListItemText 
-                      primary="Languages" 
-                      secondary={place.practical.languages.join(', ')}
-                    />
-                  </ListItem>
-                  
-                  <ListItem sx={{ px: 0 }}>
-                    <ListItemIcon><TimeIcon color="primary" /></ListItemIcon>
-                    <ListItemText 
-                      primary="Currency" 
-                      secondary={place.practical.currency}
-                    />
-                  </ListItem>
-                </List>
-              </Paper>
-            </Fade>
-
-            {/* Action Buttons */}
-            <Fade in timeout={1400}>
-              <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                  🚀 Plan Your Trip
-                </Typography>
-                
-                <ButtonGroup orientation="vertical" fullWidth sx={{ gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<FlightIcon />}
-                    sx={{
-                      borderRadius: 3,
-                      py: 1.5,
-                      background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #5a67d8 30%, #6b46c1 90%)',
-                      }
-                    }}
-                  >
-                    Book Flight
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    startIcon={<HotelIcon />}
-                    sx={{ borderRadius: 3, py: 1.5 }}
-                  >
-                    Find Hotels
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    startIcon={<MapIcon />}
-                    sx={{ borderRadius: 3, py: 1.5 }}
-                  >
-                    View on Map
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    startIcon={<RestaurantIcon />}
-                    sx={{ borderRadius: 3, py: 1.5 }}
-                  >
-                    Find Restaurants
-                  </Button>
-                </ButtonGroup>
-              </Paper>
-            </Fade>
-          </Grid>
-        </Grid>
+        <CircularProgress />
       </Container>
-    </Box>
-  );
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
+      </Container>
+    );
+  }
+
+  if (!place) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="warning">Place not found</Alert>
+      </Container>
+    );
+  }
+
+  return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
+          sx={{ mb: 2 }}
+        >
+          Back
+        </Button>
+      </Box>
+
       {/* Hero Section */}
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden', mb: 4 }}>
-        <Box sx={{ position: 'relative', height: 300 }}>
-          <CardMedia
-            component="img"
-            height="300"
-            image={place.images[0]}
-            alt={place.name}
-            sx={{ objectFit: 'cover' }}
-          />
-          <Box
-            sx={{
+      <Paper
+        elevation={0}
+        sx={{
+          position: 'relative',
+          borderRadius: 3,
+          overflow: 'hidden',
+          mb: 4,
+          height: { xs: '300px', md: '500px' }
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url(${place.images[selectedImage]})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            '&::before': {
+              content: '""',
               position: 'absolute',
-              bottom: 0,
+              top: 0,
               left: 0,
               right: 0,
-              background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-              color: 'white',
-              p: 3,
-            }}
-          >
-            <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-              {place.name}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Rating value={place.rating} precision={0.1} readOnly sx={{ color: 'gold' }} />
-                <Typography variant="body1" sx={{ ml: 1 }}>
-                  {place.rating} ({place.reviewCount.toLocaleString()} reviews)
-                </Typography>
-              </Box>
-              <Chip label={place.category} sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
+              bottom: 0,
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7))'
+            }
+          }}
+        />
+        <Box
+          sx={{
+            position: 'relative',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            p: 4,
+            color: 'white'
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+            {place.name}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Rating value={place.rating} precision={0.1} readOnly sx={{ color: 'gold' }} />
+              <Typography variant="body1" sx={{ ml: 1 }}>
+                {place.rating} ({place.reviewCount.toLocaleString()} reviews)
+              </Typography>
             </Box>
+            <Chip label={place.category} sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
           </Box>
         </Box>
       </Paper>
@@ -786,7 +414,7 @@ const PlaceDetails = () => {
                 </ListItemIcon>
                 <ListItemText 
                   primary="Languages" 
-                  secondary={place.languages.join(', ')} 
+                  secondary={place.practical.languages.join(', ')} 
                 />
               </ListItem>
               <ListItem>
@@ -795,7 +423,7 @@ const PlaceDetails = () => {
                 </ListItemIcon>
                 <ListItemText 
                   primary="Currency" 
-                  secondary={place.currency} 
+                  secondary={place.practical.currency} 
                 />
               </ListItem>
               <ListItem>
@@ -804,7 +432,7 @@ const PlaceDetails = () => {
                 </ListItemIcon>
                 <ListItemText 
                   primary="Time Zone" 
-                  secondary={place.timeZone} 
+                  secondary={place.practical.timeZone} 
                 />
               </ListItem>
             </List>
@@ -822,7 +450,7 @@ const PlaceDetails = () => {
                 </ListItemIcon>
                 <ListItemText 
                   primary="Best Time to Visit" 
-                  secondary={place.bestTimeToVisit} 
+                  secondary={`${place.bestTimeToVisit.season} (${place.bestTimeToVisit.months})`} 
                 />
               </ListItem>
               <ListItem>
@@ -831,7 +459,7 @@ const PlaceDetails = () => {
                 </ListItemIcon>
                 <ListItemText 
                   primary="Average Cost" 
-                  secondary={place.averageCost} 
+                  secondary={place.costs.midRange} 
                 />
               </ListItem>
             </List>

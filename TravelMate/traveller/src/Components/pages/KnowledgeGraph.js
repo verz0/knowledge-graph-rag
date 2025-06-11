@@ -39,7 +39,7 @@ import {
   Restaurant as RestaurantIcon,
   Hotel as HotelIcon,
   Attractions as AttractionsIcon,
-  Culture as CultureIcon,
+  TheaterComedy as CultureIcon,
   Language as LanguageIcon,
   Public as PublicIcon,
   Timeline as TimelineIcon,
