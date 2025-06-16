@@ -104,19 +104,49 @@ function ItineraryGenerator() {
           return <Typography>No itinerary available.</Typography>;
         }
         return (
-          <Box>
-            {generatedItinerary.days.map((day, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <Typography variant="h6">Day {day.day || index + 1}: {day.title || ''}</Typography>
-                {Array.isArray(day.activities) ? (
-                  day.activities.map((activity, idx) => (
-                    <Chip key={idx} label={activity.activity || activity} sx={{ mr: 1, mb: 1 }} />
-                  ))
-                ) : (
-                  <Typography>No activities available.</Typography>
-                )}
-              </Box>
-            ))}
+          <Box sx={{ flexGrow: 1 }}>
+            <Grid container spacing={3}>
+              {generatedItinerary.days.map((day, index) => (
+                <Grid item xs={12} md={6} key={index}>
+                  <Card
+                    elevation={6}
+                    sx={{
+                      borderRadius: 4,
+                      background: 'rgba(255,255,255,0.2)',
+                      backdropFilter: 'blur(6px)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      transition: 'transform 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
+                        Day {day.day || index + 1}: {day.title || ''}
+                      </Typography>
+                      {Array.isArray(day.activities) && day.activities.length > 0 ? (
+                        <List dense>
+                          {day.activities.map((activity, idx) => (
+                            <ListItem key={idx} sx={{ pl: 0 }}>
+                              <ListItemIcon>
+                                <ScheduleIcon fontSize="small" color="primary" />
+                              </ListItemIcon>
+                              <ListItemText primary={activity.activity || activity} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No activities available.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
           </Box>
         );
       case 2:
