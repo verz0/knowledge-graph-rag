@@ -100,8 +100,11 @@ const UniversalPlaceSearch = () => {
     setError('');
     
     try {
+      const limit = 10; // Define items per page
       const queryParams = new URLSearchParams({
         q: searchQuery,
+        page: currentPage.toString(),
+        limit: limit.toString(),
         ...(category !== 'all' && { category }),
         ...(sortBy && { sort: sortBy })
       });
@@ -114,7 +117,7 @@ const UniversalPlaceSearch = () => {
       }
 
       setResults(data.data.results);
-      setTotalPages(Math.ceil(data.data.totalResults / 10)); // Assuming 10 items per page
+      setTotalPages(Math.ceil(data.data.totalResults / limit)); // Use the limit variable
     } catch (err) {
       setError(err.message || 'Failed to fetch search results');
       setResults([]);

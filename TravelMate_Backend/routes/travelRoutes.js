@@ -13,10 +13,13 @@ const router = express.Router();
  * @query   type - Place type filter (optional)
  * @query   country - Country filter (optional)
  * @query   category - Category filter (optional)
+ * @query   sortBy - Sort order (e.g., name_asc, rating_desc) (optional)
+ * @query   page - Page number for pagination (optional, default 1)
+ * @query   limit - Number of results per page (optional, default 10)
  */
 router.get('/search', async (req, res, next) => {
   try {
-    const { q: query, type, country, category } = req.query;
+    const { q: query, type, country, category, sortBy, page, limit } = req.query;
     
     if (!query || query.trim().length < 2) {
       return res.status(400).json({
@@ -29,18 +32,23 @@ router.get('/search', async (req, res, next) => {
     if (type) filters.type = type;
     if (country) filters.country = country;
     if (category) filters.category = category;
+    if (sortBy) filters.sortBy = sortBy;
+    if (page) filters.page = parseInt(page, 10);
+    if (limit) filters.limit = parseInt(limit, 10);
     
-    const results = await enhancedKnowledgeGraphService.lookupPlace(query.trim(), filters);
+    const searchResult = await enhancedKnowledgeGraphService.lookupPlace(query.trim(), filters);
     
     res.status(200).json({
       success: true,
       data: {
         query: query.trim(),
         filters,
-        results,
-        totalResults: results.length
+        results: searchResult.results,
+        totalResults: searchResult.totalResults,
+        currentPage: filters.page || 1,
+        totalPages: Math.ceil(searchResult.totalResults / (filters.limit || 10))
       },
-      message: `Found ${results.length} places matching "${query}"`
+      message: `Found ${searchResult.totalResults} places matching "${query}"`
     });
     
   } catch (error) {
@@ -59,9 +67,9 @@ router.get('/place/:placeId', async (req, res, next) => {
     const { placeId } = req.params;
     
     // First try to find the place
-    const places = await enhancedKnowledgeGraphService.lookupPlace(placeId);
+    const searchResult = await enhancedKnowledgeGraphService.lookupPlace(placeId);
     
-    if (places.length === 0) {
+    if (!searchResult || !searchResult.results || searchResult.results.length === 0) {
       return res.status(404).json({
         success: false,
         message: `Place with ID "${placeId}" not found`
@@ -69,7 +77,7 @@ router.get('/place/:placeId', async (req, res, next) => {
     }
     
     // Get the first result and enrich it with comprehensive data
-    const place = places[0];
+    const place = searchResult.results[0];
     const enrichedPlace = await enhancedKnowledgeGraphService.enrichPlaceData(place);
     
     res.status(200).json({
@@ -381,14 +389,14 @@ router.post('/optimize-route', async (req, res, next) => {
   try {
     const { places, startLocation, travelMode = 'walking' } = req.body;
     
-    if (!places || !Array.isArray(places) || places.length < 2) {
+    if (!places || !Array.isArray(places) || places.length < 1) {
       return res.status(400).json({
         success: false,
-        message: 'At least 2 places are required for route optimization'
+        message: 'At least 1 place is required for route optimization'
       });
     }
     
-    const optimizedRoute = await enhancedKnowledgeGraphService.optimizeRoute(places, {
+    const optimizationResult = await enhancedKnowledgeGraphService.optimizeRoute(places, {
       startLocation,
       travelMode
     });
@@ -397,11 +405,13 @@ router.post('/optimize-route', async (req, res, next) => {
       success: true,
       data: {
         originalOrder: places,
-        optimizedRoute,
-        estimatedDuration: optimizedRoute.totalDuration,
-        estimatedDistance: optimizedRoute.totalDistance
+        optimizedRoute: optimizationResult.optimizedRoute,
+        estimatedDuration: optimizationResult.totalDuration,
+        estimatedDistance: optimizationResult.totalDistance,
+        travelMode: optimizationResult.travelMode,
+        startLocation: optimizationResult.startLocation
       },
-      message: `Route optimized for ${places.length} destinations`
+      message: `Route optimized for ${places.length} destination${places.length > 1 ? 's' : ''}`
     });
       } catch (error) {
     next(error);

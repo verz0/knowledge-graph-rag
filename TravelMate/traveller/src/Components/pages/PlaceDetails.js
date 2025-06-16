@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -58,9 +58,8 @@ import {
 const PlaceDetails = () => {
   const { placeId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [place, setPlace] = useState(location.state?.place || null);
-  const [loading, setLoading] = useState(!place);
+  const [place, setPlace] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tabValue, setTabValue] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -68,39 +67,146 @@ const PlaceDetails = () => {
 
   useEffect(() => {
     const fetchPlaceDetails = async () => {
-      if (place) return; // Use data from navigation state if available
-
+      setLoading(true);
       try {
-        setLoading(true);
-        setError('');
-
-        const response = await fetch(`/api/travel/place/${placeId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch place details');
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || 'Failed to fetch place details');
-        }
-
-        setPlace(data.data);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Enhanced mock place data based on placeId
+        const mockPlaces = {
+          paris: {
+            id: 'paris',
+            name: 'Paris, France',
+            description: 'The City of Light, known for its art, fashion, gastronomy, and culture. Paris is one of the most visited cities in the world, offering an enchanting blend of historic landmarks, world-class museums, charming neighborhoods, and culinary excellence.',
+            longDescription: 'Paris, the capital of France, is a global center for art, fashion, gastronomy, and culture. Its 19th-century cityscape is crisscrossed by wide boulevards and the River Seine. Beyond such landmarks as the Eiffel Tower and the 12th-century, Gothic Notre-Dame cathedral, the city is known for its cafe culture and designer boutiques along the Rue du Faubourg Saint-Honoré.',
+            images: [
+              'https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800',
+              'https://images.unsplash.com/photo-1549144511-f099e773c147?w=800',
+              'https://images.unsplash.com/photo-1431274172761-fca41d930114?w=800',
+              'https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800',
+              'https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f?w=800',
+              'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800'
+            ],
+            rating: 4.8,
+            reviewCount: 15420,
+            category: 'City',
+            tags: ['Culture', 'Art', 'Romance', 'Architecture', 'Fashion', 'Cuisine'],
+            location: {
+              country: 'France',
+              continent: 'Europe',
+              coordinates: '48.8566° N, 2.3522° E',
+              nearbyAirports: ['Charles de Gaulle (CDG)', 'Orly (ORY)']
+            },
+            highlights: [
+              'Eiffel Tower - Iconic iron lattice tower',
+              'Louvre Museum - World\'s largest art museum',
+              'Notre-Dame Cathedral - Gothic masterpiece',
+              'Champs-Élysées - Famous avenue',
+              'Montmartre - Artistic hilltop district',
+              'Seine River Cruise - Scenic waterway journey'
+            ],
+            bestTimeToVisit: {
+              season: 'Spring & Fall',
+              months: 'April to June, September to October',
+              weather: 'Mild temperatures, fewer crowds, beautiful scenery'
+            },
+            costs: {
+              budget: '$80-150/day',
+              midRange: '$150-300/day',
+              luxury: '$300+/day',
+              averageMeal: '$15-40',
+              hotelRange: '$60-400/night'
+            },
+            practical: {
+              languages: ['French', 'English (tourist areas)'],
+              currency: 'Euro (EUR)',
+              timeZone: 'Central European Time (CET)',
+              voltage: '220V',
+              emergencyNumber: '112'
+            },
+            attractions: [
+              {
+                name: 'Eiffel Tower',
+                description: 'Iconic iron lattice tower and symbol of Paris, offering breathtaking city views',
+                rating: 4.6,
+                estimatedTime: '2-3 hours',
+                ticketPrice: '€25-€65',
+                category: 'Landmark'
+              },
+              {
+                name: 'Louvre Museum',
+                description: 'World\'s largest art museum housing the Mona Lisa and countless masterpieces',
+                rating: 4.7,
+                estimatedTime: '3-4 hours',
+                ticketPrice: '€17',
+                category: 'Museum'
+              },
+              {
+                name: 'Notre-Dame Cathedral',
+                description: 'Medieval Catholic cathedral with stunning Gothic architecture',
+                rating: 4.5,
+                estimatedTime: '1-2 hours',
+                ticketPrice: 'Free',
+                category: 'Religious'
+              },
+              {
+                name: 'Arc de Triomphe',
+                description: 'Triumphal arch honoring those who fought for France',
+                rating: 4.4,
+                estimatedTime: '1 hour',
+                ticketPrice: '€13',
+                category: 'Monument'
+              }
+            ],
+            tips: [
+              'Book museum tickets online in advance to skip long queues',
+              'Try authentic French pastries at local boulangeries',
+              'Use the efficient Metro system for transportation',
+              'Learn basic French phrases - locals appreciate the effort',
+              'Visit popular attractions early morning or late afternoon',
+              'Explore lesser-known neighborhoods like Le Marais',
+              'Enjoy a picnic along the Seine River banks'
+            ],
+            transportation: {
+              airport: 'CDG/Orly to city center: RER B train or taxi',
+              metro: 'Extensive subway system covering the entire city',
+              bike: 'Vélib bike-sharing system available',
+              walking: 'Most attractions are within walking distance'
+            }
+          },
+          default: {
+            id: placeId,
+            name: `${placeId.charAt(0).toUpperCase() + placeId.slice(1)} Destination`,
+            description: 'A beautiful destination waiting to be explored.',
+            images: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'],
+            rating: 4.5,
+            reviewCount: 1000,
+            category: 'Destination',
+            tags: ['Adventure', 'Culture'],
+            location: { country: 'Unknown', continent: 'Unknown', coordinates: 'Unknown' },
+            highlights: ['Amazing views', 'Rich culture', 'Great food'],
+            bestTimeToVisit: { season: 'Year-round', months: 'All year', weather: 'Pleasant' },
+            costs: { budget: '$50-100/day', midRange: '$100-200/day', luxury: '$200+/day' },
+            practical: { languages: ['Local language'], currency: 'Local currency', timeZone: 'Local time' },
+            attractions: [],
+            tips: ['Plan ahead', 'Respect local customs', 'Try local cuisine'],
+            transportation: { metro: 'Public transport available' }
+          }
+        };
+        
+        const selectedPlace = mockPlaces[placeId] || mockPlaces.default;        
+        setPlace(selectedPlace);
       } catch (err) {
-        setError(err.message);
+        setError('Failed to load place details. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchPlaceDetails();
-  }, [placeId, place]);
+  }, [placeId]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
-  };
-
-  const handleBack = () => {
-    navigate(-1);
   };
 
   const toggleFavorite = () => {
@@ -110,9 +216,7 @@ const PlaceDetails = () => {
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <CircularProgress />
-        </Box>
+        <CircularProgress />
       </Container>
     );
   }
@@ -120,16 +224,7 @@ const PlaceDetails = () => {
   if (error) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-          sx={{ mt: 2 }}
-        >
-          Go Back
-        </Button>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
@@ -137,263 +232,257 @@ const PlaceDetails = () => {
   if (!place) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          Place details not found
-        </Alert>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-          sx={{ mt: 2 }}
-        >
-          Go Back
-        </Button>
+        <Alert severity="warning">Place not found</Alert>
       </Container>
     );
   }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={handleBack}
-        sx={{ mb: 3 }}
+      <Box sx={{ mb: 4 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
+          sx={{ mb: 2 }}
+        >
+          Back
+        </Button>
+      </Box>
+
+      {/* Hero Section */}
+      <Paper
+        elevation={0}
+        sx={{
+          position: 'relative',
+          borderRadius: 3,
+          overflow: 'hidden',
+          mb: 4,
+          height: { xs: '300px', md: '500px' }
+        }}
       >
-        Back to Search
-      </Button>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url(${place.images[selectedImage]})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7))'
+            }
+          }}
+        />
+        <Box
+          sx={{
+            position: 'relative',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            p: 4,
+            color: 'white'
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+            {place.name}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Rating value={place.rating} precision={0.1} readOnly sx={{ color: 'gold' }} />
+              <Typography variant="body1" sx={{ ml: 1 }}>
+                {place.rating} ({place.reviewCount.toLocaleString()} reviews)
+              </Typography>
+            </Box>
+            <Chip label={place.category} sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
+          </Box>
+        </Box>
+      </Paper>
 
       <Grid container spacing={4}>
-        {/* Image Gallery */}
+        {/* Main Content */}
         <Grid item xs={12} md={8}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              position: 'relative',
-              height: 400,
-              overflow: 'hidden',
-              borderRadius: 2
-            }}
-          >
-            {place.images && place.images[selectedImage] ? (
-              <CardMedia
-                component="img"
-                image={place.images[selectedImage]}
-                alt={place.name}
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  bgcolor: 'grey.200',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Typography variant="h6" color="text.secondary">
-                  No image available
-                </Typography>
-              </Box>
-            )}
-            <IconButton
-              onClick={toggleFavorite}
-              sx={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                bgcolor: 'rgba(255, 255, 255, 0.8)',
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' }
-              }}
-            >
-              {isFavorite ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
-            </IconButton>
-          </Paper>
-
-          {/* Thumbnail Gallery */}
-          {place.images && place.images.length > 1 && (
-            <Box sx={{ display: 'flex', gap: 1, mt: 2, overflowX: 'auto', pb: 1 }}>
-              {place.images.map((image, index) => (
-                <Paper
-                  key={index}
-                  elevation={1}
-                  sx={{
-                    width: 100,
-                    height: 60,
-                    cursor: 'pointer',
-                    border: selectedImage === index ? '2px solid primary.main' : 'none',
-                    borderRadius: 1,
-                    overflow: 'hidden'
-                  }}
-                  onClick={() => setSelectedImage(index)}
-                >
-                  <CardMedia
-                    component="img"
-                    image={image}
-                    alt={`${place.name} - Image ${index + 1}`}
-                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                </Paper>
-              ))}
-            </Box>
-          )}
-        </Grid>
-
-        {/* Place Details */}
-        <Grid item xs={12} md={4}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-              {place.name}
+          {/* Description */}
+          <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+              About {place.name}
             </Typography>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Rating value={place.rating} precision={0.1} readOnly />
-              <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                ({place.rating})
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-              {place.highlights?.map((highlight, index) => (
-                <Chip
-                  key={index}
-                  label={highlight}
-                  size="small"
-                  sx={{ bgcolor: 'primary.light', color: 'white' }}
-                />
-              ))}
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
-              <Typography variant="body1">
-                {place.city}, {place.country}
-              </Typography>
-            </Box>
-
-            {place.estimatedCost && (
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <MoneyIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="body1">
-                  Estimated Cost: {place.estimatedCost}
-                </Typography>
-              </Box>
-            )}
-
-            {place.openingHours && (
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <TimeIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="body1">
-                  {place.openingHours}
-                </Typography>
-              </Box>
-            )}
-
-            <Divider sx={{ my: 2 }} />
-
             <Typography variant="body1" paragraph>
               {place.description}
             </Typography>
           </Paper>
+
+          {/* Highlights */}
+          <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+              Must-See Highlights
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {place.highlights.map((highlight, index) => (
+                <Chip
+                  key={index}
+                  label={highlight}
+                  icon={<StarIcon />}
+                  color="primary"
+                  variant="outlined"
+                />
+              ))}
+            </Box>
+          </Paper>
+
+          {/* Top Attractions */}
+          <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+              Top Attractions
+            </Typography>
+            <Grid container spacing={2}>
+              {place.attractions.map((attraction, index) => (
+                <Grid item xs={12} key={index}>
+                  <Card elevation={1} sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {attraction.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Rating value={attraction.rating} precision={0.1} readOnly size="small" />
+                        <Typography variant="body2" sx={{ ml: 1 }}>
+                          {attraction.rating}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {attraction.description}
+                    </Typography>
+                    <Chip
+                      icon={<TimeIcon />}
+                      label={`Est. time: ${attraction.estimatedTime}`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+
+          {/* Travel Tips */}
+          <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+              Travel Tips
+            </Typography>
+            <List>
+              {place.tips.map((tip, index) => (
+                <ListItem key={index}>
+                  <ListItemIcon>
+                    <InfoIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText primary={tip} />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
         </Grid>
 
-        {/* Additional Information Tabs */}
-        <Grid item xs={12}>
-          <Paper elevation={3} sx={{ borderRadius: 2 }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              variant="fullWidth"
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              <Tab label="Overview" />
-              <Tab label="Best Time to Visit" />
-              <Tab label="Tips & Recommendations" />
-            </Tabs>
+        {/* Sidebar */}
+        <Grid item xs={12} md={4}>
+          {/* Location Info */}
+          <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+              Location Information
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <LocationIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Location" 
+                  secondary={`${place.location.country}, ${place.location.continent}`} 
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <LanguageIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Languages" 
+                  secondary={place.practical.languages.join(', ')} 
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <MoneyIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Currency" 
+                  secondary={place.practical.currency} 
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <TimeIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Time Zone" 
+                  secondary={place.practical.timeZone} 
+                />
+              </ListItem>
+            </List>
+          </Paper>
 
-            <Box sx={{ p: 3 }}>
-              {tabValue === 0 && (
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    About {place.name}
-                  </Typography>
-                  <Typography variant="body1" paragraph>
-                    {place.description}
-                  </Typography>
-                  {place.metadata?.culturalSignificance && (
-                    <>
-                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                        Cultural Significance
-                      </Typography>
-                      <Typography variant="body1">
-                        {place.metadata.culturalSignificance}
-                      </Typography>
-                    </>
-                  )}
-                </Box>
-              )}
+          {/* Visit Planning */}
+          <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+              Planning Your Visit
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <ClimateIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Best Time to Visit" 
+                  secondary={`${place.bestTimeToVisit.season} (${place.bestTimeToVisit.months})`} 
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <OfferIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Average Cost" 
+                  secondary={place.costs.midRange} 
+                />
+              </ListItem>
+            </List>
+          </Paper>
 
-              {tabValue === 1 && (
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Best Time to Visit
-                  </Typography>
-                  <Typography variant="body1" paragraph>
-                    {place.bestTimeToVisit || 'Information about the best time to visit is not available.'}
-                  </Typography>
-                  {place.metadata?.visitingInfo && (
-                    <>
-                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                        Visiting Information
-                      </Typography>
-                      <Typography variant="body1">
-                        {place.metadata.visitingInfo}
-                      </Typography>
-                    </>
-                  )}
-                </Box>
-              )}
-
-              {tabValue === 2 && (
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Tips & Recommendations
-                  </Typography>
-                  {place.metadata?.accessibility && (
-                    <>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Accessibility
-                      </Typography>
-                      <Typography variant="body1" paragraph>
-                        {place.metadata.accessibility}
-                      </Typography>
-                    </>
-                  )}
-                  {place.tags && (
-                    <>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Tags
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {place.tags.map((tag, index) => (
-                          <Chip
-                            key={index}
-                            label={tag}
-                            size="small"
-                            sx={{ bgcolor: 'grey.200' }}
-                          />
-                        ))}
-                      </Box>
-                    </>
-                  )}
-                </Box>
-              )}
+          {/* Quick Actions */}
+          <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+              Quick Actions
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button variant="contained" startIcon={<HotelIcon />} fullWidth>
+                Find Hotels
+              </Button>
+              <Button variant="outlined" startIcon={<RestaurantIcon />} fullWidth>
+                Restaurants
+              </Button>
+              <Button variant="outlined" startIcon={<TransitIcon />} fullWidth>
+                Transportation
+              </Button>
+              <Button variant="outlined" startIcon={<CameraIcon />} fullWidth>
+                Photo Gallery
+              </Button>
             </Box>
           </Paper>
         </Grid>

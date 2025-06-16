@@ -1,7 +1,7 @@
 // API service for TravelMate backend integration
 class ApiService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
   }
 
   // Generic fetch wrapper with error handling

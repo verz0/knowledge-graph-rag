@@ -7,10 +7,12 @@ class EnhancedKnowledgeGraphService {
   // Universal place lookup - can handle any place/monument/natural location
   async lookupPlace(query, filters = {}) {
     const session = getSession();
-    
+    const { type, country, category, sortBy, page = 1, limit = 10 } = filters;
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
     try {
-      // First, search in our knowledge graph
-      let cypherQuery = `
+      // Base MATCH and WHERE clauses
+      let baseMatchQuery = `
         MATCH (p)
         WHERE (
           toLower(p.name) CONTAINS toLower($query) OR
@@ -19,20 +21,40 @@ class EnhancedKnowledgeGraphService {
           any(tag in p.tags WHERE toLower(tag) CONTAINS toLower($query))
         )
       `;
-      
+
+      const queryParams = { query };
+
       // Add filters
-      if (filters.type) {
-        cypherQuery += ` AND toLower(p.type) = toLower($type)`;
+      if (type) {
+        baseMatchQuery += ` AND toLower(p.type) = toLower($type)`;
+        queryParams.type = type;
       }
-      if (filters.country) {
-        cypherQuery += ` AND toLower(p.country) = toLower($country)`;
+      if (country) {
+        baseMatchQuery += ` AND toLower(p.country) = toLower($country)`;
+        queryParams.country = country;
       }
-      if (filters.category) {
-        cypherQuery += ` AND $category IN labels(p)`;
+      if (category && category.toLowerCase() !== 'all') {
+        baseMatchQuery += ` AND $category IN labels(p)`;
+        queryParams.category = category;
       }
+
+      // Query to get total results
+      const totalCountQuery = `
+        ${baseMatchQuery}
+        RETURN count(p) as total
+      `;
       
-      cypherQuery += `
+      const totalResult = await session.run(totalCountQuery, queryParams);
+      const totalResults = totalResult.records[0].get('total').toNumber();
+
+      // Query to get paginated results
+      let dataQuery = `
+        ${baseMatchQuery}
         RETURN p, labels(p) as labels
+      `;
+
+      // Add sorting
+      let orderByClause = `
         ORDER BY 
           CASE 
             WHEN toLower(p.name) = toLower($query) THEN 1
@@ -40,11 +62,29 @@ class EnhancedKnowledgeGraphService {
             ELSE 3
           END,
           p.popularity DESC
-        LIMIT 20
+      `;
+
+      if (sortBy) {
+        if (sortBy === 'name_asc') {
+          orderByClause = 'ORDER BY p.name ASC';
+        } else if (sortBy === 'name_desc') {
+          orderByClause = 'ORDER BY p.name DESC';
+        } else if (sortBy === 'rating_asc') {
+          orderByClause = 'ORDER BY p.rating ASC, p.popularity DESC';
+        } else if (sortBy === 'rating_desc') {
+          orderByClause = 'ORDER BY p.rating DESC, p.popularity DESC';
+        }
+        // Add more sorting options as needed
+      }
+      dataQuery += orderByClause;
+      
+      dataQuery += `
+        SKIP $skip
+        LIMIT $limit
       `;
       
-      const params = { query, ...filters };
-      const result = await session.run(cypherQuery, params);
+      const paginatedParams = { ...queryParams, skip: parseInt(skip, 10), limit: parseInt(limit, 10) };
+      const result = await session.run(dataQuery, paginatedParams);
       
       let places = result.records.map(record => {
         const place = record.get('p').properties;
@@ -56,22 +96,34 @@ class EnhancedKnowledgeGraphService {
         };
       });
       
-      // If not found in knowledge graph, use mock data
-      if (places.length === 0) {
-        places = this.getMockPlaces(query);
-      }
+      // If not found in knowledge graph, use mock data (consider if this is still needed with pagination)
+      // For now, if the first page has no results from KG, we'll return empty, 
+      // as mock data doesn't support pagination/totalResults well.
+      // if (places.length === 0 && page === 1) { 
+      //   places = this.getMockPlaces(query); // This would need adjustment for totalResults
+      // }
       
       // Enrich each place with comprehensive data
+      // Consider if enrichment should happen only for the paginated results
       const enrichedPlaces = await Promise.all(
         places.map(place => this.enrichPlaceData(place))
       );
       
-      return enrichedPlaces;
+      return {
+        results: enrichedPlaces,
+        totalResults: totalResults
+      };
       
     } catch (error) {
-      console.error('Error in place lookup:', error.message);
-      // Return mock data on error
-      return this.getMockPlaces(query);
+      console.error('Error in place lookup:', error.message, error.stack);
+      // Return empty results and zero total on error to align with expected structure
+      return {
+        results: [],
+        totalResults: 0
+        // mock data might not be appropriate here if the error is DB related.
+        // results: this.getMockPlaces(query), // This would need adjustment for totalResults
+        // totalResults: this.getMockPlaces(query).length // This is not accurate
+      };
     } finally {
       await session.close();
     }
@@ -683,16 +735,40 @@ class EnhancedKnowledgeGraphService {
     
     return allPlaces.slice(startIndex, endIndex);
   }
-
-  async optimizeRoute(places) {
-    // Simple optimization - in production, use actual routing API
-    return places.sort((a, b) => {
-      // Sort by rating if available
-      if (a.rating && b.rating) {
-        return b.rating - a.rating;
-      }
-      return 0;
-    });
+  async optimizeRoute(places, options = {}) {
+    try {
+      // Simple optimization - in production, use actual routing API
+      const optimizedPlaces = [...places].sort((a, b) => {
+        // If places are strings (place names), just return them as is
+        if (typeof a === 'string' && typeof b === 'string') {
+          return 0; // Keep original order for string place names
+        }
+        
+        // Sort by rating if available (for place objects)
+        if (a.rating && b.rating) {
+          return b.rating - a.rating;
+        }
+        return 0;
+      });
+      
+      // Return in the expected format
+      return {
+        optimizedRoute: optimizedPlaces,
+        totalDuration: `${optimizedPlaces.length * 2} hours`,
+        totalDistance: `${optimizedPlaces.length * 5} km`,
+        travelMode: options.travelMode || 'walking',
+        startLocation: options.startLocation || null
+      };
+    } catch (error) {
+      console.error('Error optimizing route:', error);
+      return {
+        optimizedRoute: places,
+        totalDuration: `${places.length * 2} hours`,
+        totalDistance: `${places.length * 5} km`,
+        travelMode: options.travelMode || 'walking',
+        startLocation: options.startLocation || null
+      };
+    }
   }
 
   estimateVisitDuration(place, travelStyle) {
