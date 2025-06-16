@@ -25,7 +25,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Paper
+  Paper,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Check as CheckIcon,
@@ -43,6 +45,11 @@ import apiService from '../../services/apiService';
 function ItineraryGenerator() {
   const [activeStep, setActiveStep] = useState(0);
   const [city, setCity] = useState('');
+  const [duration, setDuration] = useState(3);
+  const [budget, setBudget] = useState('medium');
+  const [travelers, setTravelers] = useState(1);
+  const [travelStyle, setTravelStyle] = useState('balanced');
+  const [accessibility, setAccessibility] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generatedItinerary, setGeneratedItinerary] = useState(null);
@@ -62,13 +69,75 @@ function ItineraryGenerator() {
       case 0:
         return (
           <Box>
-            <TextField
-              label="Enter your destination city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              fullWidth
-              disabled={loading}
-            />
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Destination city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  fullWidth
+                  disabled={loading}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  type="number"
+                  label="Days"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  fullWidth
+                  disabled={loading}
+                  inputProps={{ min: 1 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Budget</InputLabel>
+                  <Select
+                    value={budget}
+                    label="Budget"
+                    onChange={(e) => setBudget(e.target.value)}
+                    disabled={loading}
+                  >
+                    <MenuItem value="low">Low</MenuItem>
+                    <MenuItem value="medium">Medium</MenuItem>
+                    <MenuItem value="high">High</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  type="number"
+                  label="Travelers"
+                  value={travelers}
+                  onChange={(e) => setTravelers(Number(e.target.value))}
+                  fullWidth
+                  disabled={loading}
+                  inputProps={{ min: 1 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Travel Style</InputLabel>
+                  <Select
+                    value={travelStyle}
+                    label="Travel Style"
+                    onChange={(e) => setTravelStyle(e.target.value)}
+                    disabled={loading}
+                  >
+                    <MenuItem value="balanced">Balanced</MenuItem>
+                    <MenuItem value="adventure">Adventure</MenuItem>
+                    <MenuItem value="relaxation">Relaxation</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} display="flex" alignItems="center">
+                <FormControlLabel
+                  control={<Switch checked={accessibility} onChange={(e)=>setAccessibility(e.target.checked)} />}
+                  label="Accessibility needs"
+                />
+              </Grid>
+            </Grid>
             <Button
               variant="contained"
               onClick={handleGenerate}
@@ -351,12 +420,12 @@ function ItineraryGenerator() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           destinations: [city.trim()],
-          duration: 3,
-          budget: 'medium',
+          duration: duration,
+          budget: budget,
           interests: [],
-          travelers: 1,
-          travelStyle: 'standard',
-          accessibility: false
+          groupSize: travelers,
+          travelStyle: travelStyle,
+          accessibility: accessibility
         })
       });
 
