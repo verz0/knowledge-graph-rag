@@ -28,6 +28,10 @@ import {
   Tooltip,
   ButtonGroup,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -58,7 +62,13 @@ const UniversalPlaceSearch = () => {
   const [error, setError] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [favorites, setFavorites] = useState(new Set());
-  const [viewMode, setViewMode] = useState('grid');  const categories = [
+  const [viewMode, setViewMode] = useState('grid');
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [placeDetails, setPlaceDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState('');
+
+  const categories = [
     { value: 'all', label: 'All Categories', icon: '🌍' },
     { value: 'city', label: 'Cities', icon: '🏙️' },
     { value: 'landmark', label: 'Landmarks', icon: '🏛️' },
@@ -81,82 +91,6 @@ const UniversalPlaceSearch = () => {
     { value: 'price_high', label: 'Price: High to Low' },
   ];
 
-  // Mock search results
-  const mockResults = [
-    {
-      id: 'paris',
-      name: 'Paris, France',
-      description: 'The City of Light, known for its art, fashion, gastronomy and culture',
-      image: 'https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=400',
-      rating: 4.8,
-      reviewCount: 15420,
-      category: 'city',
-      country: 'France',
-      highlights: ['Eiffel Tower', 'Louvre Museum', 'Notre-Dame'],
-      estimatedCost: '$150-300/day'
-    },
-    {
-      id: 'tokyo',
-      name: 'Tokyo, Japan',
-      description: 'A bustling metropolis blending ultra-modern and traditional',
-      image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
-      rating: 4.7,
-      reviewCount: 12850,
-      category: 'city',
-      country: 'Japan',
-      highlights: ['Shibuya Crossing', 'Senso-ji Temple', 'Tokyo Skytree'],
-      estimatedCost: '$120-250/day'
-    },
-    {
-      id: 'santorini',
-      name: 'Santorini, Greece',
-      description: 'Stunning Greek island with white buildings and blue domes',
-      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400',
-      rating: 4.9,
-      reviewCount: 8950,
-      category: 'nature',
-      country: 'Greece',
-      highlights: ['Oia Sunset', 'Blue Domes', 'Volcanic Beaches'],
-      estimatedCost: '$100-200/day'
-    },
-    {
-      id: 'bali',
-      name: 'Bali, Indonesia',
-      description: 'Tropical paradise with temples, beaches, and rice terraces',
-      image: 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=400',
-      rating: 4.6,
-      reviewCount: 11200,
-      category: 'beach',
-      country: 'Indonesia',
-      highlights: ['Ubud Rice Terraces', 'Tanah Lot', 'Seminyak Beach'],
-      estimatedCost: '$50-120/day'
-    },
-    {
-      id: 'machu-picchu',
-      name: 'Machu Picchu, Peru',
-      description: 'Ancient Incan citadel set high in the Andes Mountains',
-      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=400',
-      rating: 4.8,
-      reviewCount: 6780,
-      category: 'culture',
-      country: 'Peru',
-      highlights: ['Huayna Picchu', 'Sun Gate', 'Inca Trail'],
-      estimatedCost: '$80-150/day'
-    },
-    {
-      id: 'iceland',
-      name: 'Reykjavik, Iceland',
-      description: 'Land of fire and ice with stunning natural phenomena',
-      image: 'https://images.unsplash.com/photo-1539650116574-75c0c6d68311?w=400',
-      rating: 4.7,
-      reviewCount: 5420,
-      category: 'nature',
-      country: 'Iceland',
-      highlights: ['Northern Lights', 'Blue Lagoon', 'Golden Circle'],
-      estimatedCost: '$200-400/day'
-    }
-  ];
-
   useEffect(() => {
     handleSearch();
   }, [searchQuery, category, sortBy, currentPage]);
@@ -166,42 +100,24 @@ const UniversalPlaceSearch = () => {
     setError('');
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      let filteredResults = mockResults;
-      
-      // Filter by search query
-      if (searchQuery.trim()) {
-        filteredResults = filteredResults.filter(place =>
-          place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          place.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          place.country.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      
-      // Filter by category
-      if (category !== 'all') {
-        filteredResults = filteredResults.filter(place => place.category === category);
-      }
-      
-      // Sort results
-      filteredResults.sort((a, b) => {
-        switch (sortBy) {
-          case 'rating':
-            return b.rating - a.rating;
-          case 'name':
-            return a.name.localeCompare(b.name);
-          case 'popularity':
-          default:
-            return b.reviewCount - a.reviewCount;
-        }
+      const queryParams = new URLSearchParams({
+        q: searchQuery,
+        ...(category !== 'all' && { category }),
+        ...(sortBy && { sort: sortBy })
       });
-      
-      setResults(filteredResults);
-      setTotalPages(Math.ceil(filteredResults.length / 6));
+
+      const response = await fetch(`/api/travel/search?${queryParams}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch search results');
+      }
+
+      setResults(data.data.results);
+      setTotalPages(Math.ceil(data.data.totalResults / 10)); // Assuming 10 items per page
     } catch (err) {
-      setError('Failed to search places. Please try again.');
+      setError(err.message || 'Failed to fetch search results');
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -214,12 +130,64 @@ const UniversalPlaceSearch = () => {
     setCurrentPage(1);
   };
 
-  const handlePlaceClick = (placeId) => {
-    navigate(`/place/${placeId}`);
+  const handlePlaceClick = async (placeId) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await fetch(`/api/travel/place/${placeId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch place details');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch place details');
+      }
+
+      // Navigate to place details with the fetched data
+      navigate(`/place/${placeId}`, { 
+        state: { 
+          place: data.data,
+          fromSearch: true
+        }
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePlaceDetailsClick = async (placeName) => {
+    setSelectedPlace(placeName);
+    setPlaceDetails(null);
+    setDetailsError('');
+    setDetailsLoading(true);
+    try {
+      const response = await fetch(`/api/travel/place-info/${encodeURIComponent(placeName)}`);
+      const data = await response.json();
+      if (data.success) {
+        setPlaceDetails(data.data);
+      } else {
+        setDetailsError(data.message || 'Failed to load place details');
+      }
+    } catch (err) {
+      setDetailsError('Error loading details: ' + err.message);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedPlace(null);
+    setPlaceDetails(null);
+    setDetailsError('');
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>      {/* Header */}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
       <Fade in timeout={600}>
         <Paper 
           elevation={0} 
@@ -438,7 +406,7 @@ const UniversalPlaceSearch = () => {
                         }
                       },
                     }}
-                    onClick={() => handlePlaceClick(place.id)}
+                    onClick={() => handlePlaceDetailsClick(place.name)}
                   >
                     <Box sx={{ position: 'relative', overflow: 'hidden' }}>
                       <CardMedia
@@ -508,9 +476,9 @@ const UniversalPlaceSearch = () => {
                       </Typography>
                       
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Rating value={place.rating} precision={0.1} readOnly size="small" />
+                        <Rating value={place.rating || 0} precision={0.1} readOnly size="small" />
                         <Typography variant="body2" color="text.secondary" sx={{ ml: 1, fontWeight: 500 }}>
-                          {place.rating} ({place.reviewCount.toLocaleString()})
+                          {place.rating || 0} ({place.reviewCount ? place.reviewCount.toLocaleString() : 0})
                         </Typography>
                       </Box>
                       
@@ -530,7 +498,7 @@ const UniversalPlaceSearch = () => {
                       </Typography>
                       
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                        {place.highlights.slice(0, 3).map((highlight, index) => (
+                        {(place.highlights || []).slice(0, 3).map((highlight, index) => (
                           <Chip
                             key={index}
                             label={highlight}
@@ -655,6 +623,35 @@ const UniversalPlaceSearch = () => {
           </Box>
         </Fade>
       )}
+      
+      <Dialog open={!!selectedPlace} onClose={handleCloseDetails} maxWidth="md" fullWidth>
+        <DialogTitle>Place Details: {selectedPlace}</DialogTitle>
+        <DialogContent dividers>
+          {detailsLoading && <CircularProgress />}
+          {detailsError && <Alert severity="error">{detailsError}</Alert>}
+          {placeDetails && (
+            <Box>
+              <Typography variant="h6">Wikipedia Summary</Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {placeDetails.wikipedia?.extract || 'No Wikipedia summary available.'}
+              </Typography>
+              <Typography variant="h6">Additional Info</Typography>
+              {placeDetails.wikipedia?.additionalInfo ? (
+                <Box>
+                  <Typography>Rating: {placeDetails.wikipedia.additionalInfo.rating || 'N/A'}</Typography>
+                  <Typography>Address: {placeDetails.wikipedia.additionalInfo.address || 'N/A'}</Typography>
+                  <Typography>Types: {(placeDetails.wikipedia.additionalInfo.types || []).join(', ')}</Typography>
+                </Box>
+              ) : (
+                <Typography>No additional info available.</Typography>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDetails}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

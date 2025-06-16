@@ -226,7 +226,8 @@ const App = () => {
         <CssBaseline />
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
-          <Box component="main" sx={{ flexGrow: 1 }}>            <Routes>
+          <Box component="main" sx={{ flexGrow: 1 }}>
+            <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/place/:placeId" element={<PlaceDetails />} />
               <Route path="/search" element={<UniversalPlaceSearch />} />

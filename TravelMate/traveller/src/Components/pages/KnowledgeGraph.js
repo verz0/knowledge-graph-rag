@@ -131,34 +131,47 @@ const KnowledgeGraph = () => {
     setError('');
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      let filteredEntities = mockEntities;
-      
-      if (searchType) {
-        filteredEntities = filteredEntities.filter(entity => entity.type === searchType);
+      const queryParams = new URLSearchParams({
+        ...(searchType && { type: searchType }),
+        ...(searchName.trim() && { q: searchName.trim() })
+      });
+
+      const response = await fetch(`/api/travel/knowledge?${queryParams}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch knowledge graph data');
       }
-      
-      if (searchName.trim()) {
-        filteredEntities = filteredEntities.filter(entity =>
-          entity.name.toLowerCase().includes(searchName.toLowerCase()) ||
-          entity.description.toLowerCase().includes(searchName.toLowerCase())
-        );
-      }
-      
-      setGraphData(filteredEntities);
+
+      setGraphData(data.data.entities);
       setViewMode('results');
     } catch (err) {
-      setError('Failed to fetch knowledge graph data');
+      setError(err.message || 'Failed to fetch knowledge graph data');
+      setGraphData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEntitySelect = (entity) => {
-    setSelectedEntity(entity);
-    setViewMode('detail');
+  const handleEntitySelect = async (entity) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch(`/api/travel/knowledge/${entity.id}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch entity details');
+      }
+
+      setSelectedEntity(data.data);
+      setViewMode('detail');
+    } catch (err) {
+      setError(err.message || 'Failed to fetch entity details');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClear = () => {
@@ -457,11 +470,12 @@ const KnowledgeGraph = () => {
                             <Typography variant="h6" sx={{ fontWeight: 600 }}>
                               {entity.name}
                             </Typography>
-                            <Chip 
-                              label={entity.type} 
-                              size="small" 
+                            <Chip
+                              label={entity.type}
+                              size="small"
+                              icon={getEntityIcon(entity.type)}
                               color={getEntityColor(entity.type)}
-                              variant="outlined"
+                              sx={{ mr: 1 }}
                             />
                           </Box>
                         </Box>
@@ -532,10 +546,12 @@ const KnowledgeGraph = () => {
                     <Typography variant="h4" sx={{ fontWeight: 700 }}>
                       {selectedEntity.name}
                     </Typography>
-                    <Chip 
-                      label={selectedEntity.type} 
+                    <Chip
+                      label={selectedEntity.type}
+                      size="small"
+                      icon={getEntityIcon(selectedEntity.type)}
                       color={getEntityColor(selectedEntity.type)}
-                      sx={{ mt: 1 }}
+                      sx={{ mr: 1 }}
                     />
                   </Box>
                 </Box>

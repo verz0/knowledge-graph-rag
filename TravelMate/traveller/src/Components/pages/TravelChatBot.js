@@ -16,9 +16,6 @@ import {
   Fade,
   InputAdornment,
   Tooltip,
-  Card,
-  CardContent,
-  Divider,
   Badge,
   Zoom,
 } from '@mui/material';
@@ -70,9 +67,12 @@ const TravelChatBot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
   const handleSendMessage = async (messageText = null) => {
     const textToSend = messageText || inputMessage.trim();
-    if (!textToSend || loading) return;    const userMessage = {
+    if (!textToSend || loading) return;
+
+    const userMessage = {
       id: Date.now(),
       text: textToSend,
       sender: 'user',
@@ -472,7 +472,8 @@ const TravelChatBot = () => {
               />
             </Box>
           </Paper>
-        </Fade>      </Container>
+        </Fade>
+      </Container>
     </Box>
   );
 };

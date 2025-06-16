@@ -138,6 +138,28 @@ const SmartRAG = () => {
           cost: '€€€€',
           bestTime: 'Mar-May, Sep-Nov',
           image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300'
+        },
+        {
+          title: 'Kyoto, Japan',
+          description: 'Ancient temples, traditional gardens, and preserved historic districts make this former imperial capital a cultural treasure.',
+          relevance: 88,
+          highlights: ['Fushimi Inari Shrine', 'Bamboo Grove', 'Golden Pavilion', 'Geisha District'],
+          category: 'City',
+          rating: 4.7,
+          cost: '€€€',
+          bestTime: 'Mar-May, Sep-Nov',
+          image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300'
+        },
+        {
+          title: 'Barcelona, Spain',
+          description: 'Gaudí\'s architectural masterpieces, vibrant street life, and Mediterranean beaches create an unforgettable experience.',
+          relevance: 82,
+          highlights: ['Sagrada Familia', 'Park Güell', 'Las Ramblas', 'Gothic Quarter'],
+          category: 'City',
+          rating: 4.6,
+          cost: '€€',
+          bestTime: 'May-Sep',
+          image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300'
         }
       ],
       experiences: [
@@ -563,7 +585,8 @@ const SmartRAG = () => {
               </Fade>
             )}
           </Grid>
-        </Grid>      </Container>
+        </Grid>
+      </Container>
     </Box>
   );
 };

@@ -57,6 +57,7 @@ import {
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import apiService from '../../services/apiService';
 
 const TravelPlannerFlow = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -70,10 +71,11 @@ const TravelPlannerFlow = () => {
     description: '',
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [places, setPlaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
   const [itinerary, setItinerary] = useState(null);
-  const [error, setError] = useState('');
+  const [optimizedRoute, setOptimizedRoute] = useState(null);
 
   const steps = [
     'Travel Details',
@@ -88,14 +90,14 @@ const TravelPlannerFlow = () => {
     { value: 'luxury', label: 'Luxury ($2500+)', icon: '👑' },
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (activeStep === 0 && validateTravelDetails()) {
       setActiveStep(1);
-      fetchPlaces();
+      await fetchPlaces();
     } else if (activeStep === 1 && selectedPlaces.length > 0) {
       setActiveStep(2);
     } else if (activeStep === 2) {
-      generateItinerary();
+      await generateItinerary();
     } else if (activeStep === 3) {
       setActiveStep(0);
       resetFlow();
@@ -195,64 +197,62 @@ const TravelPlannerFlow = () => {
 
   const generateItinerary = async () => {
     setLoading(true);
+    setError('');
+    setOptimizedRoute(null);
+
     try {
       const selectedPlaceObjects = places.filter(place => 
         selectedPlaces.includes(place.place_id)
       );
 
-      const statement = selectedPlaceObjects
-        .map(place => `${place.name} at ${place.formatted_address}`)
-        .join(', ');
+      const response = await fetch('/api/travel/optimize-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          places: selectedPlaceObjects.map(place => place.name),
+          startLocation: travelData.source.trim() || null,
+        }),
+      });
 
-      const userInput = {
-        source: travelData.source,
-        destination: travelData.destination,
-        departureDate: travelData.departureDate?.format('YYYY-MM-DD'),
-        returnDate: travelData.returnDate?.format('YYYY-MM-DD'),
-        budget: travelData.budget,
-        description: travelData.description,
-        travelers: travelData.travelers,
-      };
+      const data = await response.json();
+      if (data.success) {
+        setOptimizedRoute(data.data.optimizedRoute);
+      } else {
+        setError(data.message || 'Failed to optimize route');
+      }
 
-      const query = `
-        query EventPlanner($selectedPlaces: String!, $userInput: UserInputForEventPlanner!) {
-          eventPlanner(selectedPlaces: $selectedPlaces, userInput: $userInput) {
-            name
-            details
-            timing
-            total_duration
-            famous_activity
-            recommended_transport
-            additional_notes
-          }
-        }
-      `;
-
-      const response = await fetch('http://localhost:8686/graphql', {
+      const itineraryResponse = await fetch('/api/travel/itinerary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query,
-          variables: { 
-            selectedPlaces: statement, 
-            userInput 
-          },
-        }),
+          destinations: data.data.optimizedRoute,
+          duration: dayjs(travelData.returnDate).diff(dayjs(travelData.departureDate), 'day'),
+          budget: travelData.budget,
+          interests: [],
+          travelStyle: 'balanced',
+          groupSize: travelData.travelers,
+          accessibility: false,
+          description: travelData.description
+        })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      const itineraryData = await itineraryResponse.json();
+
+      if (!itineraryResponse.ok) {
+        throw new Error(itineraryData.message || 'Failed to generate itinerary');
       }
 
-      const data = await response.json();
-      setItinerary(data.data.eventPlanner || []);
+      if (!itineraryData.success) {
+        throw new Error(itineraryData.message || 'Failed to generate itinerary');
+      }
+
+      setItinerary(itineraryData.data);
       setActiveStep(3);
-      
-    } catch (error) {
-      console.error('Error generating itinerary:', error);
-      setError('Failed to generate itinerary. Please try again.');
+    } catch (err) {
+      console.error('Error generating itinerary:', err);
+      setError('Error generating itinerary: ' + err.message);
     } finally {
       setLoading(false);
     }
